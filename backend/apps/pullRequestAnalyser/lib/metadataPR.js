@@ -1,5 +1,5 @@
 // Step 1: dependencies
-const { Octokit } = require('octokit');
+const { Octokit } = require('@octokit/rest');
 const fs = require('fs');
 const path = require('path');
 const { GITHUB_TOKEN } = require('../conf/pullRequestAnalyser.json');
@@ -15,8 +15,8 @@ function parseGithubUrl(url) {
 }
 
 async function getMetadata(ownerURL, requesterURL) {
-    const source = parseGithubUrl(requesterURLl);
-    const target = parseGithubUrl(requesterURL);
+    const source = parseGithubUrl(requesterURL);
+    const target = parseGithubUrl(ownerURL);
 
     // fetch basic repo info for both
     const { data: sourceInfo } = await octokit.rest.repos.get({ owner: source.owner, repo: source.repo });
@@ -44,7 +44,7 @@ async function getMetadata(ownerURL, requesterURL) {
     // build the JSON report
     const report = {
         source: {
-            url:         sourceRepoUrl,
+            url:         requesterURL,
             name:        sourceInfo.full_name,
             branch:      source.branch,
             description: sourceInfo.description || null,
@@ -54,7 +54,7 @@ async function getMetadata(ownerURL, requesterURL) {
             updated_at:  sourceInfo.updated_at
         },
         target: {
-            url:         targetRepoUrl,
+            url:         ownerURL,
             name:        targetInfo.full_name,
             branch:      target.branch,
             description: targetInfo.description || null,
@@ -91,3 +91,4 @@ async function getMetadata(ownerURL, requesterURL) {
     // fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf8');
     // console.log(`\nDone! Metadata saved to ${outputPath}`);
 }
+module.exports={getMetadata}

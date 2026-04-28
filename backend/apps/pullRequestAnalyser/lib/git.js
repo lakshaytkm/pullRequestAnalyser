@@ -1,20 +1,19 @@
 // Step 1: dependencies
-const { Octokit } = require('octokit');
+const { Octokit } = require('@octokit/rest');
 const fs = require('fs');
 const path = require('path');
 const { GITHUB_TOKEN } = require('../conf/pullRequestAnalyser.json');
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
 
-// if URL has /tree/branchname → extract that branch
-// if URL is just owner/repo → default to 'main'
+
 function parseGithubUrl(url) {
     const parts = url.replace('https://github.com/', '').split('/');
     const branch = parts[2] === 'tree' ? parts.slice(3).join('/') : 'main';
     return { owner: parts[0], repo: parts[1], branch };
 }
 
-// 4.6 Fetches file content from GitHub and returns it as an array of lines
+
 async function getFileLines(owner, repo, branch, filepath) {
     try {
         const { data: fileData } = await octokit.rest.repos.getContent({
@@ -24,13 +23,15 @@ async function getFileLines(owner, repo, branch, filepath) {
         const content = Buffer.from(fileData.content, 'base64').toString('utf8');
         return content.split('\n');
     } catch (e) {
-        return null; // file may not exist in one of the repos (e.g. newly added file)
+        return null; 
     }
 }
+/* 
+example:
+Input:  owner='VivekKumar', repo='loginapp', branch='main', filepath='index.js'
+Output: ['const express = require("express");', 'const port = 3000;', ...]
+*/
 
-// 4.7 Parses the @@ line from a patch to extract the starting line number
-// patch line looks like: @@ -23,6 +23,7 @@ some context
-// the number after + is the line number in the new/source file
 function parseChangedLines(patch) {
     const lineNumbers = [];
     const regex = /@@\s-\d+(?:,\d+)?\s\+(\d+)(?:,\d+)?\s@@/g;
@@ -40,8 +41,11 @@ function parseChangedLines(patch) {
     }
     return lineNumbers;
 }
+/*
+example
 
-// 4.8 Extracts 10 lines above and below a changed line from the file
+*/
+
 function getContext(lines, changedLine, contextSize = 10) {
     const start = Math.max(0, changedLine - contextSize - 1);
     const end = Math.min(lines.length, changedLine + contextSize);
@@ -49,34 +53,39 @@ function getContext(lines, changedLine, contextSize = 10) {
         .map((line, i) => `${start + i + 1}: ${line}`)
         .join('\n');
 }
-
+/*
+example
+changedLine = 23, contextSize = 10
+start = 13, end = 33
+Output: 
+"13: const express = require('express');
+ 14: const port = 3000;
+ ...
+ 23: const port = 8080;   ← the changed line
+ ...
+ 33: }"
+ */
 async function analyse(ownerURL, requesterURL) {
-    const source = parseGithubUrl(requesterURL);
-    const target = parseGithubUrl(ownerURL);
+    const forked = parseGithubUrl(requesterURL);
+    const upstream = parseGithubUrl(ownerURL);
 
-    console.log(`\nSource: ${source.owner}/${source.repo} (branch: ${source.branch})`);
-    console.log(`Target: ${target.owner}/${target.repo} (branch: ${target.branch})`);
+    console.log(`Requester: ${forked.owner}/${forked.repo} (branch: ${forked.branch})`);
+    console.log(`Target: ${upstream.owner}/${upstream.repo} (branch: ${upstream.branch})`);
 
-    // 5.2 Comparing source branch against target branch across both repos
-    /*
-    basehead format: targetOwner:targetBranch...sourceOwner:sourceBranch
-    base → the starting branch (the target/main)
-    head → the branch you're comparing against (the source/feature)
-    */
+    
     console.log('\nComparing branches...');
-    const basehead = `${target.owner}:${target.branch}...${source.owner}:${source.branch}`;
+    const basehead = `${upstream.owner}:${upstream.branch}...${forked.owner}:${forked.branch}`;
     const { data: comparison } = await octokit.rest.repos.compareCommitsWithBasehead({
-        owner: target.owner,
-        repo: target.repo,
+        owner: upstream.owner,
+        repo: upstream.repo,
         basehead
     });
 
-    // 5.3 Build the JSON report
     const files = [];
     for (const file of comparison.files || []) {
 
         // fetch surrounding context for each changed file
-        const lines = await getFileLines(source.owner, source.repo, source.branch, file.filename);
+        const lines = await getFileLines(forked.owner, forked.repo, forked.branch, file.filename);
         const context = [];
         if (lines && file.patch) {
             const changedLines = parseChangedLines(file.patch);
@@ -100,16 +109,16 @@ async function analyse(ownerURL, requesterURL) {
 
     const report = {
         source: {
-            url:    sourceRepoUrl,
-            owner:  source.owner,
-            repo:   source.repo,
-            branch: source.branch
+            url:    requesterURL,
+            owner:  forked.owner,
+            repo:   forked.repo,
+            branch: forked.branch
         },
         target: {
-            url:    targetRepoUrl,
-            owner:  target.owner,
-            repo:   target.repo,
-            branch: target.branch
+            url:    ownerURL,
+            owner:  upstream.owner,
+            repo:   upstream.repo,
+            branch: upstream.branch
         },
         comparison: {
             status:         comparison.status,   // ahead, behind, diverged, identical
@@ -133,3 +142,4 @@ async function analyse(ownerURL, requesterURL) {
 //   return fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf8');
 } 
 
+module.exports={analyse}

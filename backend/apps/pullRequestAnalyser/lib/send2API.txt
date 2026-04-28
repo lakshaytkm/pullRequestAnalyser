@@ -1,0 +1,28 @@
+Review the following pull request.
+Evaluate it for:
+- Code quality
+- Security issues
+- Performance impact
+- Adherence to best practices
+- Whether it is safe to merge
+Provide your response in the following format:
+Summary:
+(A concise overview of the changes)
+Risks:
+(List any potential issues, vulnerabilities, or concerns)
+Recommendation:
+(Approve / Reject, with a brief justification)
+
+=== PR DATA ===
+First is the Git Report. 
+It tell us about:
+- url, name of the owner ,repo, branch
+- comparison(status, ahead by, behind by, files changed, total_files, total_additions, total_deletions)
+- files in each etc.
+{{{gitreport}}}
+
+Second is the Meta Data Report, which gives the metadata about the 
+-> 2 repositories: url, name of the owner ,branch,description,language,visibility, created_at, updated_at
+-> comparison(status, ahead by, behind by, files changed)
+-> 5 most recent commit on the upstream branch.
+{{{metadatareport}}}
