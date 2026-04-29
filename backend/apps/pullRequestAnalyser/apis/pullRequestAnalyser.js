@@ -21,7 +21,7 @@ const options = {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': "<your_token_here>"
+        'Authorization': "<token_here>"
     },
     body: JSON.stringify({  
        "id":"test@tekmonks.com",  
@@ -33,7 +33,7 @@ const options = {
 };
 
   const result = await fetch(url, options);
-  const response = result.json();
+  const response = await result.json();
   return response;
 };
 
@@ -52,8 +52,7 @@ async function run(jsonReq) {
 const templatePath = path.join(__dirname, "../lib/send2API.txt"); 
  const template = await fs.promises.readFile(templatePath, "utf-8");
  const finalPrompt = Mustache.render(template, {gitreport,metadatareport});
- console.log(finalPrompt);
- return {renderedPrompt: finalPrompt};
+ return finalPrompt;
 }
 
 
