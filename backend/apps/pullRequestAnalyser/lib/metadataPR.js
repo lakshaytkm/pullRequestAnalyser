@@ -1,22 +1,27 @@
 // Step 1: dependencies
 const { Octokit } = require('@octokit/rest');
-const fs = require('fs');
-const path = require('path');
 const { GITHUB_TOKEN } = require('../conf/pullRequestAnalyser.json');
+
+// Step 2: initialising Octokit with our token
 const octokit = new Octokit({ auth: GITHUB_TOKEN });
 
+// Main function - takes owner, repo and pull_number instead of two URLs
+async function getMetadata(owner, repo, pull_number) {
 
+    // fetch the PR info first — this gives us source and target repo/branch
+    const { data: pr } = await octokit.rest.pulls.get({ owner, repo, pull_number });
 
-// 4.5 Extracts owner, repo and branch from a GitHub URL
-function parseGithubUrl(url) {
-    const parts = url.replace('https://github.com/', '').split('/');
-    const branch = parts[2] === 'tree' ? parts.slice(3).join('/') : 'main';
-    return { owner: parts[0], repo: parts[1], branch };
-}
-
-async function getMetadata(ownerURL, requesterURL) {
-    const source = parseGithubUrl(requesterURL);
-    const target = parseGithubUrl(ownerURL);
+    // extract source and target from the PR object
+    const source = {
+        owner:  pr.head.repo.owner.login,
+        repo:   pr.head.repo.name,
+        branch: pr.head.ref
+    };
+    const target = {
+        owner:  pr.base.repo.owner.login,
+        repo:   pr.base.repo.name,
+        branch: pr.base.ref
+    };
 
     // fetch basic repo info for both
     const { data: sourceInfo } = await octokit.rest.repos.get({ owner: source.owner, repo: source.repo });
@@ -24,9 +29,9 @@ async function getMetadata(ownerURL, requesterURL) {
 
     // fetch the last 5 commits on the source branch
     const { data: commits } = await octokit.rest.repos.listCommits({
-        owner: source.owner,
-        repo: source.repo,
-        sha: source.branch,
+        owner:    source.owner,
+        repo:     source.repo,
+        sha:      source.branch,
         per_page: 5
     });
 
@@ -34,17 +39,22 @@ async function getMetadata(ownerURL, requesterURL) {
     const basehead = `${target.owner}:${target.branch}...${source.owner}:${source.branch}`;
     const { data: comparison } = await octokit.rest.repos.compareCommitsWithBasehead({
         owner: target.owner,
-        repo: target.repo,
+        repo:  target.repo,
         basehead
     });
 
     const latest = commits[0];
     const oldest = commits[commits.length - 1];
 
-    // build the JSON report
-    const report = {
+    return {
+        pr: {
+            number: pr.number,
+            title:  pr.title,
+            body:   pr.body || null,
+            state:  pr.state
+        },
         source: {
-            url:         requesterURL,
+            url:         pr.head.repo.html_url,
             name:        sourceInfo.full_name,
             branch:      source.branch,
             description: sourceInfo.description || null,
@@ -54,7 +64,7 @@ async function getMetadata(ownerURL, requesterURL) {
             updated_at:  sourceInfo.updated_at
         },
         target: {
-            url:         ownerURL,
+            url:         pr.base.repo.html_url,
             name:        targetInfo.full_name,
             branch:      target.branch,
             description: targetInfo.description || null,
@@ -85,10 +95,6 @@ async function getMetadata(ownerURL, requesterURL) {
             message: commit.commit.message.split('\n')[0]
         }))
     };
-
-    return report;
-    // const outputPath = path.join(__dirname, 'pr_metadata.json');
-    // fs.writeFileSync(outputPath, JSON.stringify(report, null, 2), 'utf8');
-    // console.log(`\nDone! Metadata saved to ${outputPath}`);
 }
-module.exports={getMetadata}
+
+module.exports = { getMetadata };

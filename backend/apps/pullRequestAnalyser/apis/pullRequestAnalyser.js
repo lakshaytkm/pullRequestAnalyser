@@ -3,7 +3,6 @@ const metadata = require("../lib/metadataPR.js");
 const fs = require("fs");
 const path = require("path");
 const Mustache = require("mustache");
-const {httpClient}= require(`${CONSTANTS.LIBDIR}/httpClient.js`) ;
 const url = 'https://neuranet.app:9090/apps/neuranet/llmflow';
 
 
@@ -21,8 +20,7 @@ const options = {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': "<token_here>"
-    },
+        'Authorization': "<YOUR_TOKEN_HERE>"},
     body: JSON.stringify({  
        "id":"test@tekmonks.com",  
         "org": "tekmonks", 
@@ -39,29 +37,18 @@ const options = {
 
 
 /* Function Definitions */
-const validateRequest = (jsonReq) => (jsonReq && jsonReq.ownerURL && jsonReq.requesterURL);
-
+const validateRequest = (jsonReq) => (jsonReq && jsonReq.owner && jsonReq.repo && jsonReq.pull_number);
 
 async function run(jsonReq) {
- var gitreport=  await git.analyse(jsonReq.ownerURL,jsonReq.requesterURL);  
- var metadatareport= await metadata.getMetadata(jsonReq.ownerURL,jsonReq.requesterURL);
+var gitreport      = await git.analyse(jsonReq.owner, jsonReq.repo, jsonReq.pull_number);
+var metadatareport = await metadata.getMetadata(jsonReq.owner, jsonReq.repo, jsonReq.pull_number);
 
- gitreport = JSON.stringify(gitreport, null, 2);
- metadatareport = JSON.stringify(metadatareport, null, 2);
+gitreport = JSON.stringify(gitreport, null, 2);
+metadatareport = JSON.stringify(metadatareport, null, 2);
   
 const templatePath = path.join(__dirname, "../lib/send2API.txt"); 
- const template = await fs.promises.readFile(templatePath, "utf-8");
- const finalPrompt = Mustache.render(template, {gitreport,metadatareport});
- return finalPrompt;
+const template = await fs.promises.readFile(templatePath, "utf-8");
+const finalPrompt = Mustache.render(template, {gitreport,metadatareport});
+return finalPrompt;
 }
 
-
-
-// fetch(url, options)
-//     .then(response => response.json())
-//     .then(data => {
-//         console.log(data);
-//     })
-//     .catch(error => {
-//         console.error('Error:', error);
-//     });
