@@ -1,6 +1,9 @@
 // Step 1: dependencies
+const path = require("path");
 const { Octokit } = require('@octokit/rest');
-const { GITHUB_TOKEN } = require('../conf/pullRequestAnalyser.json');
+const { APP_CONSTANTS } = require("../lib/constants.js");
+const { LIBDIR, CONFDIR } = APP_CONSTANTS;
+const { GITHUB_TOKEN } = require(path.join(CONFDIR, "pullRequestAnalyser.json"));
 
 // Step 2: initialising Octokit with our token
 const octokit = new Octokit({ auth: GITHUB_TOKEN });

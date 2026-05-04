@@ -1,17 +1,27 @@
-const git = require("../lib/git.js");
-const metadata = require("../lib/metadataPR.js");
-const fs = require("fs");
 const path = require("path");
-const Mustache = require("mustache");
-const url = 'https://neuranet.app:9090/apps/neuranet/llmflow';
 
+const { APP_CONSTANTS } = require("../lib/constants.js");
+const { LIBDIR, CONFDIR, ROOTDIR } = APP_CONSTANTS;
+
+const git = require(path.join(LIBDIR, "git.js"));
+const metadata = require(path.join(LIBDIR, "metadataPR.js"));
+
+const fs = require("fs");
+const Mustache = require("mustache");
+
+const httpClient = require(
+  path.join(ROOTDIR, "monkshu", "backend", "server", "lib", "httpClient.js")
+);
+
+const config = require(path.join(CONFDIR, "pullRequestAnalyser.json"));
+const { NeuraNetURL, NeuraNetauthToken } = config;
 
 exports.doService = async (jsonReq) => {
   if (!validateRequest(jsonReq)) {
     LOG.error("Validation failure."); 
     return false;
   }
-  LOG.debug("Received API for analysing: " + jsonReq.ownerURL + " " + jsonReq.requesterURL);
+  LOG.debug("Received API for analysing");
   const prompt= await run(jsonReq);
   console.log(prompt);
 
@@ -20,7 +30,8 @@ const options = {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': "<YOUR_TOKEN_HERE>"},
+        'Authorization': NeuraNetauthToken
+      },
     body: JSON.stringify({  
        "id":"test@tekmonks.com",  
         "org": "tekmonks", 
@@ -30,10 +41,15 @@ const options = {
          })
 };
 
-  const result = await fetch(url, options);
-  const response = await result.json();
+const result = await fetch(NeuraNetURL, options);
+if (result.error || result.status >= 400) {
+  throw new Error(error || `Request failed with status ${status}`);
+}
+const response = await result.json();
   return response;
 };
+
+
 
 
 /* Function Definitions */

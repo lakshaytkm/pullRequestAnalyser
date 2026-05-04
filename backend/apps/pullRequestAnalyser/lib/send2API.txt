@@ -1,22 +1,16 @@
-Review the following pull request.
-Evaluate it for:
-- Code quality
-- Security issues
-- Performance impact
-- Adherence to best practices
-- Whether it is safe to merge
-Provide your response in the following format:
-Summary:
-(A concise overview of the changes)
-Risks:
-(List any potential issues, vulnerabilities, or concerns)
-Recommendation:
-(Approve / Reject, with a brief justification)
 
-=== PR DATA ===
+Role 
+I have a Git Repository which is really important to me and I want to update it with the help of my fellow developers.
+However I am really short on time.
+So, I want you to replace me and help me with the pull request I have received.
+Analyze it properly, so that I can decide whether to merge it or not.
+Assume you are an experienced Software Developer with 15+ years of experience across various technologies.
+---
+Context 
+The context consists of 2 reports: 
 First is the Git Report. 
-It tell us about:
-- url, name of the owner ,repo, branch
+It tells us about:
+- URL, name of the owner ,repo, branch
 - comparison(status, ahead by, behind by, files changed, total_files, total_additions, total_deletions)
 - files in each etc.
 {{{gitreport}}}
@@ -26,3 +20,19 @@ Second is the Meta Data Report, which gives the metadata about the
 -> comparison(status, ahead by, behind by, files changed)
 -> 5 most recent commit on the upstream branch.
 {{{metadatareport}}}
+----
+Instructions
+1. Review the following pull request.
+2. Go through all the request, have a look at the changes and tell me why those changes were made by the user.
+   Consider each and every updation and tell me why is the code altered at all and what changes are seen from the original
+   repository.
+3. In the end after evaluating each change, evaluate it for: Code quality, Security issues, Performance impact, Adherence to best practices, Whether it is safe to merge and recommendation whether to merge or not
+4.   So, enlist with the help of the report, the changes, then give an explanation as to how and why has the code been changed.
+    Once done, provide me with the evaluation of quality, security, adherence to practices, safety to merge and recommendation.
+5. Also, return both the reports, it must be the first thing you return, so that the user also gets some overview before the analysis done by you.
+-----
+Output Format
+1. Return the 2 files, without the context part of gitreport and also return the metadata report.
+2. Return changes and reasoning
+3. Return the analysis (safety, security, quality, adherence, recommendation)
+-----
