@@ -9,9 +9,7 @@ const metadata = require(path.join(LIBDIR, "metadataPR.js"));
 const fs = require("fs");
 const Mustache = require("mustache");
 
-const httpClient = require(
-  path.join(ROOTDIR, "monkshu", "backend", "server", "lib", "httpClient.js")
-);
+const httpClient = require(`${CONSTANTS.LIBDIR}/httpclient.js`);
 
 const config = require(path.join(CONFDIR, "pullRequestAnalyser.json"));
 const { NeuraNetURL, NeuraNetauthToken } = config;
@@ -41,7 +39,7 @@ const options = {
          })
 };
 
-const result = await fetch(NeuraNetURL, options);
+const result = await httpClient.fetch(NeuraNetURL, options);
 if (result.error || result.status >= 400) {
   throw new Error(error || `Request failed with status ${status}`);
 }

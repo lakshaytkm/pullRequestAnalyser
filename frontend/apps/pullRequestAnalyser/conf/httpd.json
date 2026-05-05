@@ -1,0 +1,7 @@
+{
+    "ssl": false,
+    "sslKeyFile": "/Users/rvkapoor/Documents/Programs/source/etc/dnsip_privkey.pem",
+    "sslCertFile": "/Users/rvkapoor/Documents/Programs/source/etc/dnsip_fullchain.pem",
+    "port": 8000,
+    "host": "{{{hostname}}}"
+}
