@@ -1,10 +1,19 @@
-const git = require("../lib/git.js");
-const metadata = require("../lib/metadataPR.js");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 const Mustache = require("mustache");
-const {httpClient}= require(`${CONSTANTS.LIBDIR}/httpClient.js`) ;
-const url = 'https://neuranet.app:9090/apps/neuranet/llmflow';
+
+const { APP_CONSTANTS } = require("../lib/constants.js");
+const { LIBDIR, CONFDIR, ROOTDIR } = APP_CONSTANTS;
+
+const git = require(path.join(LIBDIR, "git.js"));
+const metadata = require(path.join(LIBDIR, "metadataPR.js"));
+
+const httpClient = require(
+  path.join(ROOTDIR, "monkshu", "backend", "server", "lib", "httpClient.js")
+);
+
+const config = require(path.join(CONFDIR, "pullRequestAnalyser.json"));
+const { NeuraNetURL, NeuraNetauthToken } = config;
 
 
 exports.doService = async (jsonReq) => {
@@ -21,7 +30,7 @@ const options = {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json',
-        'Authorization': "<token_here>"
+        'Authorization': NeuraNetauthToken
     },
     body: JSON.stringify({  
        "id":"test@tekmonks.com",  
@@ -32,11 +41,13 @@ const options = {
          })
 };
 
-  const result = await fetch(url, options);
-  const response = await result.json();
+const result = await fetch(NeuraNetURL, options);
+if (result.error || result.status >= 400) {
+  throw new Error(error || `Request failed with status ${status}`);
+}
+const response = await result.json();
   return response;
 };
-
 
 /* Function Definitions */
 const validateRequest = (jsonReq) => (jsonReq && jsonReq.ownerURL && jsonReq.requesterURL);
