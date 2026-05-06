@@ -1,5 +1,4 @@
 {
-    "GITHUB_TOKEN":"<your token here>",
+    "GITHUB_TOKEN":"<Your_Token_Here>",
     "NeuraNetURL" : "https://neuranet.app:9090/apps/neuranet/llmflow",
-    "NeuraNetauthToken": "<your token here>"
-}
+    "NeuraNetauthToken": "<Your_Token_Here>"}

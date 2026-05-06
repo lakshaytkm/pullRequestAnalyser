@@ -1,55 +1,78 @@
-<!-- 
-(C) 2015 TekMonks. All rights reserved.
-License: See enclosed license.txt file.
--->
-<!doctype html>
-<html>
-	
+<!DOCTYPE html>
+<html lang="en">
 <head>
-	<meta charset="UTF-8">
-	<meta name=viewport content="width=device-width, initial-scale=1.0, minimum-scale=0.5 maximum-scale=1.0">
-	<link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Repository Pull Request Analyser</title>
 
-	<link rel="preload" as="image" href="./img/loading.svg">
-	<link rel="preload" as="image" href="./img/errorloading.svg">
+    <link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
+    <style>
+        html{
+          padding:0;
+          margin:0;  
+        }
+        body{
+            background-color: navy;
+            color:floralwhite;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            display: block;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+        #PRLink{
+            background-color: white;
+            color: black;
+        }
+        #PRLink::placeholder{
+            color:dimgray;
+        }
+        #submit-btn {
+            width: 49px;
+            height: 28px;
+            background-color: #ec2c21;   /* button color */
+            color: white;                /* text color */
+            padding: 6px 10px;          /* space inside */
+            border: none;                /* remove default border */
+            border-radius: 4px;          /* rounded corners */
+            font-size: 8px;
+            cursor: pointer;             /* shows hand on hover */
+            transition: background-color 0.3s ease;
+            text-align: center;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
 
-	<title>Login App</title>
-	
-	<!-- Boot and go -->
-	<script type="module" src="./js/index.mjs"></script>
+        #submit-btn:hover {
+            background-color: #b31919;   /* darker on hover */
+        }
 
-	<style>
-		html, body {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			align-items: center;
-			margin: 0;
-		}
+        #submit-btn:active {
+            transform: scale(0.98);      /* slight press effect */
+        }
+        #content-box{
+            color:black;
+            background-color: white;
+        }
 
-		body > img {width: 30vw; height: 30vw; visibility: hidden;}
-		@media (orientation: portrait) { body > img {width: 50vw; height: 50vw;} }
-	</style>
+
+    </style>
 </head>
 
 <body>
-	<img id="__org_monkshu_xbin_indexpage_spinner" src="./img/loading.svg" onclick="window.open(APP_CONSTANTS.APP_ABOUT_URL, '_blank')">
 
-	<!-- Show the waiting spinner if waiting for more than default timeout and error if there are network issues -->
-	<script type="text/javascript">
-		const SPINNER_WAIT_TIMEOUT = 750;	// 750 miliseconds before spinner shows up
-		document.addEventListener("DOMContentLoaded", _=>setTimeout(_=> {
-			const imgElement = document.querySelector("img#__org_monkshu_xbin_indexpage_spinner");
-			if (imgElement) imgElement.style.visibility="visible"
-		}, SPINNER_WAIT_TIMEOUT));
+    <h2> GitHub Repository PR Analyser </h2>
+        <div id="linkBox">
+            <input type="text" placeholder="Enter owner/repo/pull-number..." id="PRlink">
+            <br> 
+            <button id="submit-btn">Submit</button>
+        </div>
 
-		const ERROR_SPINNER_WAIT_TIMEOUT = 10000;	// 10 seconds before error spinner shows up
-		document.addEventListener("DOMContentLoaded", _=>setTimeout(_=> {
-			const imgElement = document.querySelector("img#__org_monkshu_xbin_indexpage_spinner");
-			if (imgElement) {imgElement.src = "./img/errorloading.svg";}
-		}, ERROR_SPINNER_WAIT_TIMEOUT));
-	</script>
+            <h3>This is where the content loads 👇</h3>
+        <div id="content-box">  dssdffredfgtrfvgtre4fghtgrfvc      </div>
+
+   <script type="text/javascript" src="/framework/js/$$.js"></script>
+   <script type="module" src="./js/index.mjs"></script>
+
 </body>
 </html>

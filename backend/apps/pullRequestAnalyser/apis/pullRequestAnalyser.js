@@ -1,7 +1,7 @@
 const path = require("path");
 
 const { APP_CONSTANTS } = require("../lib/constants.js");
-const { LIBDIR, CONFDIR, ROOTDIR } = APP_CONSTANTS;
+const { LIBDIR, CONFDIR, ROOTDIR, MONKSHU_LIBDIR } = APP_CONSTANTS;
 
 const git = require(path.join(LIBDIR, "git.js"));
 const metadata = require(path.join(LIBDIR, "metadataPR.js"));
@@ -9,7 +9,7 @@ const metadata = require(path.join(LIBDIR, "metadataPR.js"));
 const fs = require("fs");
 const Mustache = require("mustache");
 
-const httpClient = require(`${CONSTANTS.LIBDIR}/httpclient.js`);
+const httpClient = require(`${CONSTANTS.LIBDIR}/httpClient.js`);
 
 const config = require(path.join(CONFDIR, "pullRequestAnalyser.json"));
 const { NeuraNetURL, NeuraNetauthToken } = config;
@@ -38,12 +38,13 @@ const options = {
         "flow":"llm_flow"   
          })
 };
-
+LOG.info("Call sent to Neuranet");
 const result = await httpClient.fetch(NeuraNetURL, options);
 if (result.error || result.status >= 400) {
   throw new Error(error || `Request failed with status ${status}`);
 }
 const response = await result.json();
+LOG.info("Response Received from Neuranet");
   return response;
 };
 
