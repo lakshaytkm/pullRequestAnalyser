@@ -7,14 +7,12 @@ import { APP_CONSTANTS } from "./constants.mjs";
 import { apimanager } from "/framework/js/apimanager.mjs";
 const { rest } = apimanager;
 
-
 const API_URL = "http://localhost:9090/apis/pullRequestAnalyser";
 
 const HEADERS = {
   "Content-Type": "application/json",
-  "x-api": "secreT_Key-1May26"
+  "x-api": "secreT_Key-1May26",
 };
-
 
 // -----------------------------------------------------------------
 // Placeholders
@@ -22,11 +20,11 @@ const placeholders = [
   "Paste GitHub PR link...",
   "Enter owner/repo/pull-number...",
   "Try: github.com/user/repo/pull/1",
-  "Try: https://github.com/TekMonksGitHub/loginapp/pull/11"
+  "Try: https://github.com/TekMonksGitHub/loginapp/pull/11",
 ];
 
 let index = 0;
-const input = document.getElementById("PRlink");
+const input = document.getElementById("PRLink");
 
 setInterval(() => {
   index = (index + 1) % placeholders.length;
@@ -34,21 +32,19 @@ setInterval(() => {
 }, 2000);
 // -----------------------------------------------------------------
 
-
 // -----------------------------------------------------------------
 // Events: Click or Enter
 document.getElementById("submit-btn").addEventListener("click", sendData);
 
-document.getElementById("PRlink").addEventListener("keypress", function (e) {
+document.getElementById("PRLink").addEventListener("keypress", function (e) {
   if (e.key === "Enter") sendData();
 });
 // -----------------------------------------------------------------
 
-
 // -----------------------------------------------------------------
 // sendData calls parseLink to get an object, then passes it to callAPI
 function sendData() {
-  const value = document.getElementById("PRlink").value.trim();
+  const value = document.getElementById("PRLink").value.trim();
   const parts = parseLink(value);
 
   if (!parts) {
@@ -56,10 +52,9 @@ function sendData() {
     return;
   }
 
-  callAPI(parts);
+  callAPI(value);
 }
 // -----------------------------------------------------------------
-
 
 // -----------------------------------------------------------------
 // callAPI: calls apimanager.rest, renders the response
@@ -70,31 +65,33 @@ async function callAPI(data) {
   box.innerHTML = "Loading...";
 
   try {
-    const res = await rest({
-      url: API_URL,
-      type: "POST",
-      req: data,
-      sendToken: false,
-      extractToken: false,
-      canUseCache: false,
-      dontGZIP: false,
-      sendErrResp: true,
-      headers: HEADERS
-    });
+    console.log(typeof API_URL);
+    const res = await rest(
+  API_URL,
+  "POST",
+  data,
+  false,   // sendToken
+  false,   // extractToken
+  false,   // canUseCache
+  false,   // dontGZIP
+  true,    // sendErrResp
+  undefined, // timeout (or a number)
+  HEADERS
+);
 
     if (!res || res.respErr) {
       box.innerHTML = `Error: ${res?.respErr?.statusText || "Request failed"}`;
       return;
     }
 
-    box.innerHTML = typeof res === "string" ? res : JSON.stringify(res, null, 2);
+    box.innerHTML =
+      typeof res === "string" ? res : JSON.stringify(res, null, 2);
   } catch (err) {
     console.error(err);
     box.innerHTML = "Error fetching data";
   }
 }
 // -----------------------------------------------------------------
-
 
 // -----------------------------------------------------------------
 // parseLink: parse GitHub PR link into { owner, repo, pull_number }
@@ -109,7 +106,7 @@ function parseLink(url) {
     return {
       owner: parts[0],
       repo: parts[1],
-      pull_number: parts[3]
+      pull_number: parts[3],
     };
   } catch (err) {
     return null;

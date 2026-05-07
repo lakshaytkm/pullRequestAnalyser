@@ -1,4 +1,3 @@
-
 Role 
 I have a Git Repository which is really important to me and I want to update it with the help of my fellow developers.
 However I am really short on time.

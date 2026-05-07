@@ -6,70 +6,150 @@
     <title>Git Repository Pull Request Analyser</title>
 
     <link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
-    <style>
-        html{
-          padding:0;
-          margin:0;  
-        }
-        body{
-            background-color: navy;
-            color:floralwhite;
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            display: block;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-        }
-        #PRLink{
-            background-color: white;
-            color: black;
-        }
-        #PRLink::placeholder{
-            color:dimgray;
-        }
-        #submit-btn {
-            width: 49px;
-            height: 28px;
-            background-color: #ec2c21;   /* button color */
-            color: white;                /* text color */
-            padding: 6px 10px;          /* space inside */
-            border: none;                /* remove default border */
-            border-radius: 4px;          /* rounded corners */
-            font-size: 8px;
-            cursor: pointer;             /* shows hand on hover */
-            transition: background-color 0.3s ease;
-            text-align: center;
-            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+   <style>
+    html {
+    padding: 0;
+    margin: 0;
 }
 
-        #submit-btn:hover {
-            background-color: #b31919;   /* darker on hover */
-        }
+body {
+    background: linear-gradient(135deg, #020024, #090979, #00d4ff);
+    color: floralwhite;
+    font-size: 1.2rem;
+    text-align: center;
+    font-family: 'Trebuchet MS', sans-serif;
+    min-height: 100vh;
+    padding-top: 60px;
+}
 
-        #submit-btn:active {
-            transform: scale(0.98);      /* slight press effect */
-        }
-        #content-box{
-            color:black;
-            background-color: white;
-        }
+/* Input field */
+#PRLink {
+    width: 520px;
+    max-width: 85%;
+    padding: 16px 20px;
+
+    border: none;
+    border-radius: 14px;
+
+    background: rgba(255, 255, 255, 0.95);
+    color: #111;
+
+    font-size: 1rem;
+    font-weight: 600;
+
+    outline: none;
+
+    box-shadow:
+        0 6px 18px rgba(0,0,0,0.25),
+        0 0 12px rgba(255,255,255,0.15);
+
+    transition: all 0.25s ease;
+}
+
+/* Fancy focus effect */
+#PRLink:focus {
+    transform: scale(1.02);
+    box-shadow:
+        0 0 0 4px rgba(255,255,255,0.2),
+        0 10px 24px rgba(0,0,0,0.35);
+}
+
+#PRLink::placeholder {
+    color: #666;
+    font-style: italic;
+    letter-spacing: 1px;
+}
+
+/* Submit button */
+#submit-btn {
+    margin-left: 12px;
+    width: 130px;
+    height: 52px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #ff3131, #ff7b00);
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow:
+        0 6px 18px rgba(0,0,0,0.3),
+        inset 0 -3px 0 rgba(0,0,0,0.2);
+    transition: all 0.2s ease;
+}
+
+/* Hover = dramatic */
+#submit-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow:
+        0 12px 24px rgba(0,0,0,0.4),
+        0 0 16px rgba(255,120,0,0.45);
+}
+
+/* Click effect */
+#submit-btn:active {
+    transform: scale(0.96);
+}
+
+/* Optional funny text swap on hover */
+#submit-btn:hover::after {
+    content: " 🏁";
+}
+/* Content box */
+#content-box {
+    width: 75%;
+    min-height: 180px;
+    margin: 40px auto;
+    border: 3px solid rgba(255,255,255,0.5);
+    padding: 20px;
+    border-radius: 18px;
+    background: rgba(174, 236, 236, 0.646);
+    backdrop-filter: blur(8px);
+    color: white;
+    display: block;
+    box-shadow: 0 8px 24px rgba(174, 241, 237, 0.35);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
 
 
-    </style>
+/* Placeholder text */
+#content-box::after {
+    position: relative;
+    display: block;
+    font-size: 1rem;
+    color: rgba(255,255,255,0.75);
+    font-style: italic;
+    margin-top: 50px;
+    z-index: 2;
+}
+
+/* Animation */
+@keyframes floatGlow {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+</style>
 </head>
 
 <body>
 
     <h2> GitHub Repository PR Analyser </h2>
         <div id="linkBox">
-            <input type="text" placeholder="Enter owner/repo/pull-number..." id="PRlink">
-            <br> 
+            <input type="text" placeholder="Enter owner/repo/pull-number..." id="PRLink">
             <button id="submit-btn">Submit</button>
         </div>
 
-            <h3>This is where the content loads 👇</h3>
-        <div id="content-box">  dssdffredfgtrfvgtre4fghtgrfvc      </div>
+            <h4>This is where the content loads 👇</h4>
+                <div id="content-box">
+                Content will appear here...
+                </div>
 
    <script type="text/javascript" src="/framework/js/$$.js"></script>
    <script type="module" src="./js/index.mjs"></script>
