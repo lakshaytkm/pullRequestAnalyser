@@ -6,19 +6,14 @@ Analyze it properly, so that I can decide whether to merge it or not.
 Assume you are an experienced Software Developer with 15+ years of experience across various technologies.
 ---
 Context 
-The context consists of 2 reports: 
-First is the Git Report. 
+The context consists of the following report: 
+the Git Report. 
 It tells us about:
 - URL, name of the owner ,repo, branch
 - comparison(status, ahead by, behind by, files changed, total_files, total_additions, total_deletions)
 - files in each etc.
 {{{gitreport}}}
 
-Second is the Meta Data Report, which gives the metadata about the 
--> 2 repositories: url, name of the owner ,branch,description,language,visibility, created_at, updated_at
--> comparison(status, ahead by, behind by, files changed)
--> 5 most recent commit on the upstream branch.
-{{{metadatareport}}}
 ----
 Instructions
 1. Review the following pull request.
@@ -31,7 +26,7 @@ Instructions
 5. Also, return both the reports, it must be the first thing you return, so that the user also gets some overview before the analysis done by you.
 -----
 Output Format
-1. Return the 2 files, without the context part of gitreport and also return the metadata report.
-2. Return changes and reasoning
+1. Return the files, without the context part of gitreport.
 3. Return the analysis (safety, security, quality, adherence, recommendation)
+4. Return all this in .md file.
 -----

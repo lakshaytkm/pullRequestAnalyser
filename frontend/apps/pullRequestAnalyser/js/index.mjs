@@ -4,14 +4,14 @@
  */
 
 import { APP_CONSTANTS } from "./constants.mjs";
-import { apimanager } from "/framework/js/apimanager.mjs";
-const { rest } = apimanager;
+import  {apimanager}  from "/framework/js/apimanager.mjs";
 
 const API_URL = "http://localhost:9090/apis/pullRequestAnalyser";
 
 const HEADERS = {
   "Content-Type": "application/json",
-  "x-api": "secreT_Key-1May26",
+  "x-api-key": "secreT_Key-1May26",
+  "content-encoding":"gzip"
 };
 
 // -----------------------------------------------------------------
@@ -52,7 +52,7 @@ function sendData() {
     return;
   }
 
-  callAPI(value);
+  callAPI(parts);
 }
 // -----------------------------------------------------------------
 
@@ -65,8 +65,7 @@ async function callAPI(data) {
   box.innerHTML = "Loading...";
 
   try {
-    console.log(typeof API_URL);
-    const res = await rest(
+  const res = await apimanager.rest(
   API_URL,
   "POST",
   data,
@@ -76,7 +75,10 @@ async function callAPI(data) {
   false,   // dontGZIP
   true,    // sendErrResp
   undefined, // timeout (or a number)
-  HEADERS
+  HEADERS,   // headers
+  false,     // provideHeaders
+  1,         // retries
+  false      //sseURL
 );
 
     if (!res || res.respErr) {

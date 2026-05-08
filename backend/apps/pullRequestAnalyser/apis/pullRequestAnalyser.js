@@ -4,7 +4,6 @@ const { APP_CONSTANTS } = require("../lib/constants.js");
 const { LIBDIR, CONFDIR, ROOTDIR, MONKSHU_LIBDIR } = APP_CONSTANTS;
 
 const git = require(path.join(LIBDIR, "git.js"));
-const metadata = require(path.join(LIBDIR, "metadataPR.js"));
 
 const fs = require("fs");
 const Mustache = require("mustache");
@@ -36,14 +35,17 @@ exports.doService = async (jsonReq) => {
         "flow":"llm_flow"   
          })
 };
+
 LOG.info("Call sent to Neuranet");
-const result = await httpClient.fetch(NeuraNetURL, options);
+const result = await fetch(NeuraNetURL, options);
 if (result.error || result.status >= 400) {
   throw new Error(error || `Request failed with status ${status}`);
 }
 const response = await result.json();
 LOG.info("Response Received from Neuranet");
   return response;
+
+
 
 };
 
@@ -64,25 +66,14 @@ async function run(jsonReq) {
         jsonReq.pull_number
     );
 
-    // Fetch metadata report
-    const metadatareport = await metadata.getMetadata(
-        jsonReq.owner,
-        jsonReq.repo,
-        jsonReq.pull_number
-    );
-
-    // Convert both objects into formatted JSON strings
+  
+    
     const prettyGitReport = JSON.stringify(
         gitreport,
         null,
         2
     );
 
-    const prettyMetadataReport = JSON.stringify(
-        metadatareport,
-        null,
-        2
-    );
 
     // Read Mustache template
     const templatePath = path.join(
@@ -95,11 +86,11 @@ async function run(jsonReq) {
         "utf-8"
     );
 
-    // Render template
+    
     const finalPrompt = Mustache.render(template, {
         gitreport: prettyGitReport,
-        metadatareport: prettyMetadataReport
     });
 
     return finalPrompt;
+
 }
