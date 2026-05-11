@@ -9,7 +9,7 @@ import  {apimanager}  from "/framework/js/apimanager.mjs";
 const API_URL = "http://localhost:9090/apis/pullRequestAnalyser";
 
 const HEADERS = {
-  "Content-Type": "application/json",
+//  "Content-Type": "application/json",
   "x-api-key": "secreT_Key-1May26",
   "content-encoding":"gzip"
 };
