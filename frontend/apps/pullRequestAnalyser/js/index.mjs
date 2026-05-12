@@ -1,117 +1,167 @@
-/**
- * index.mjs - Browser compatible version
- * Replaces Node.js require/path with ES module imports
- */
 
+// 1: Import
 import { APP_CONSTANTS } from "./constants.mjs";
-import  {apimanager}  from "/framework/js/apimanager.mjs";
+import { apimanager } from "/framework/js/apimanager.mjs";
 
+
+// 2: Constants
 const API_URL = "http://localhost:9090/apis/pullRequestAnalyser";
+const HEADERS = { "x-api-key": "secreT_Key-1May26", "content-encoding": "gzip" };
+const parts={};
 
-const HEADERS = {
-//  "Content-Type": "application/json",
-  "x-api-key": "secreT_Key-1May26",
-  "content-encoding":"gzip"
-};
-
-// -----------------------------------------------------------------
-// Placeholders
-const placeholders = [
-  "Paste GitHub PR link...",
-  "Enter owner/repo/pull-number...",
-  "Try: github.com/user/repo/pull/1",
-  "Try: https://github.com/TekMonksGitHub/loginapp/pull/11",
-];
-
+// 3: Placeholders
+const placeholders = ["Paste GitHub Repo link...", "Try: github.com/user/repo/", "Try: https://github.com/TekMonksGitHub/loginapp/"];
 let index = 0;
 const input = document.getElementById("PRLink");
+setInterval(() => { index = (index + 1) % placeholders.length; input.placeholder = placeholders[index]; }, 1000);
 
-setInterval(() => {
-  index = (index + 1) % placeholders.length;
-  input.placeholder = placeholders[index];
-}, 2000);
-// -----------------------------------------------------------------
 
-// -----------------------------------------------------------------
-// Events: Click or Enter
-document.getElementById("submit-btn").addEventListener("click", sendData);
-
-document.getElementById("PRLink").addEventListener("keypress", function (e) {
-  if (e.key === "Enter") sendData();
+// 4: Events
+// 4.1: Theme
+const themeToggle = document.getElementById('themeToggle');
+themeToggle.addEventListener('change', () => {
+    document.documentElement.setAttribute(
+        'data-theme',
+        themeToggle.checked ? 'light' : 'dark'
+    );
 });
-// -----------------------------------------------------------------
 
-// -----------------------------------------------------------------
-// sendData calls parseLink to get an object, then passes it to callAPI
-function sendData() {
-  const value = document.getElementById("PRLink").value.trim();
-  const parts = parseLink(value);
+// 4.2: Input — debounced 600ms
+let timer = null;
+document.getElementById('PRLink').addEventListener('input', function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => { sendData(); }, 600);
+});
 
-  if (!parts) {
-    alert("Invalid GitHub PR link or format");
-    return;
-  }
 
-  callAPI(parts);
+// 5: Function Definitions
+
+// 5.1 sendData: awaits parseLink, then passes result to callAPI
+async function sendData() {
+    const value = document.getElementById("PRLink").value.trim();
+    const parts = await parseLink(value);
+    callAPI(parts);
 }
-// -----------------------------------------------------------------
 
-// -----------------------------------------------------------------
-// callAPI: calls apimanager.rest, renders the response
-async function callAPI(data) {
-  if (!data) return;
+// 5.2 parseLink: validates the URL, checks repo + PR via GitHub API
+async function parseLink(url) {
+    try {
+        // 5.2.1 — ensure full URL
+        if (!url.startsWith('http')) url = 'https://' + url;
 
-  const box = document.getElementById("content-box");
-  box.innerHTML = "Loading...";
+        // 5.2.2 — match against GitHub repo pattern
+        const githubRepoRegex = /^(https?:\/\/)?(www\.)?github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)(\/.*)?$/;
+        const match = url.match(githubRepoRegex);
 
-  try {
-  const res = await apimanager.rest(
-  API_URL,
-  "POST",
-  data,
-  false,   // sendToken
-  false,   // extractToken
-  false,   // canUseCache
-  false,   // dontGZIP
-  true,    // sendErrResp
-  undefined, // timeout (or a number)
-  HEADERS,   // headers
-  false,     // provideHeaders
-  1,         // retries
-  false      //sseURL
-);
+        // 5.2.3 — no match or no repo segment → red
+        if (!match || !match[4]) {
+            setIndicator('radial-gradient(circle at 30% 30%, #ff6b6b, #cc0000)', 'state-red', 'Not a valid link');
+            return null;
+        }
 
-    if (!res || res.respErr) {
-      box.innerHTML = `Error: ${res?.respErr?.statusText || "Request failed"}`;
-      return;
+        // 5.2.4 — only allow: bare repo, /pulls, or /pull/{number}
+        const extraPath = match[5];
+        const isAllowedPath = extraPath === undefined || extraPath === "/pulls" || /^\/pull\/\d+$/.test(extraPath);
+
+        if (!isAllowedPath) {
+            setIndicator('radial-gradient(circle at 30% 30%, #ff6b6b, #cc0000)', 'state-red', 'Not a valid link');
+            return null;
+        }
+
+        const owner = match[3];
+        const repo  = match[4];
+
+        // 5.2.5 — check if repo exists
+        setLoading();
+        const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+            headers: { 'Accept': 'application/vnd.github+json' }
+        });
+
+        if (!repoRes.ok) {
+            setIndicator('radial-gradient(circle at 30% 30%, #ffaa55, #e65c00)', 'state-orange', 'Repo not found');
+            return null;
+        }
+
+        // 5.2.6 — repo exists, now check PR if present
+        if (extraPath && /^\/pull\/\d+$/.test(extraPath)) {
+            const prNumber = extraPath.split('/')[2];
+            const prRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${prNumber}`, {
+                headers: { 'Accept': 'application/vnd.github+json' }
+            });
+
+            if (!prRes.ok) {
+                setIndicator('radial-gradient(circle at 30% 30%, #ffaa55, #e65c00)', 'state-orange', 'PR not found');
+                return null;
+            }
+
+            setIndicator('radial-gradient(circle at 30% 30%, #69ff6b, #00aa00)', 'state-green', 'Valid PR');
+            return { owner, repo, prNumber };
+        }
+
+        // 5.2.7 — valid bare repo
+        setIndicator('radial-gradient(circle at 30% 30%, #69ff6b, #00aa00)', 'state-green', 'Valid repo');
+        return { owner, repo };
+
+    } catch (err) {
+        console.error(err);
+        setIndicator('radial-gradient(circle at 30% 30%, #ff6b6b, #cc0000)', 'state-red', 'Not a valid link');
+        return null;
     }
-
-    box.innerHTML =
-      typeof res === "string" ? res : JSON.stringify(res, null, 2);
-  } catch (err) {
-    console.error(err);
-    box.innerHTML = "Error fetching data";
-  }
 }
-// -----------------------------------------------------------------
 
-// -----------------------------------------------------------------
-// parseLink: parse GitHub PR link into { owner, repo, pull_number }
-function parseLink(url) {
-  try {
-    if (!url.startsWith("http")) url = "https://github.com/" + url;
+// 5.3 callAPI: calls apimanager.rest, renders the response
+async function callAPI(data) {
+    if (!data) return;
 
-    const parts = new URL(url).pathname.split("/").filter(Boolean);
+    const box = document.getElementById("content-box");
+    box.innerHTML = "Loading...";
 
-    if (parts.length < 4 || parts[2] !== "pull") return null;
+    try {
+        const res = await apimanager.rest(
+            API_URL,
+            "POST",
+            data,
+            false,
+            false,
+            false,
+            false,
+            true,
+            undefined,
+            HEADERS,
+            false,
+            1,
+            false
+        );
 
-    return {
-      owner: parts[0],
-      repo: parts[1],
-      pull_number: parts[3],
-    };
-  } catch (err) {
-    return null;
-  }
+        if (!res || res.respErr) {
+            box.innerHTML = `Error: ${res?.respErr?.statusText || "Request failed"}`;
+            return;
+        }
+
+        box.innerHTML = typeof res === "string" ? res : JSON.stringify(res, null, 2);
+
+    } catch (err) {
+        console.error(err);
+        box.innerHTML = "Error fetching data";
+    }
 }
-// -----------------------------------------------------------------
+
+
+// HELPER FUNCTIONS
+function setIndicator(gradientCSS, explainerClass, explainerText) {
+    const indicator = document.getElementById('indicator');
+    const explainer = document.getElementById('indicator-explainer');
+    indicator.style.background = gradientCSS;
+    indicator.style.boxShadow  = 'none';
+    explainer.className        = explainerClass;
+    explainer.textContent      = explainerText;
+}
+
+function setLoading() {
+    const indicator = document.getElementById('indicator');
+    const explainer = document.getElementById('indicator-explainer');
+    indicator.style.background = 'radial-gradient(circle at 30% 30%, #e0e0e0, #9ca3af)';
+    indicator.style.boxShadow  = '';
+    explainer.className        = '';
+    explainer.textContent      = 'Checking…';
+}
