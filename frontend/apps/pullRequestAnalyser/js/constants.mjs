@@ -9,6 +9,7 @@ const IMGDIR               = new URL("img/", BASEDIR).href;
 const JSDIR                = new URL("js/", BASEDIR).href;
 const MONKSHU_APIM = "/framework/js/apimanager.mjs";
 
+const BACKENDCONF= new URL("backend/apps/pullRequestAnalyser/conf", APPDIR).href;
 
 export const APP_CONSTANTS = {
   ROOTDIR,
@@ -17,7 +18,8 @@ export const APP_CONSTANTS = {
   CONFDIR,
   IMGDIR,
   JSDIR,
-  MONKSHU_APIM
+  MONKSHU_APIM,
+  BACKENDCONF
 };
 
 export const constants = APP_CONSTANTS;

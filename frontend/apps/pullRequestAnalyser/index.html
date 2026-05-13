@@ -6,6 +6,7 @@
     <title>Git Repository Pull Request Analyser</title>
 
     <link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
+    <script src="https://unpkg.com/mustache@latest/mustache.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@300;400;500;700&display=swap');
 
@@ -162,7 +163,9 @@
         /* ── Page grid wrapper ── */
         #page-wrapper {
             display: grid;
-            grid-template-columns: 3fr 1fr;
+            /* 1: main content | 2: aside */
+            grid-template-columns: 7fr 3fr;
+            /* row 1: guider hint above aside | row 2: main + aside body */
             grid-template-rows: auto 1fr;
             gap: 0 20px;
             max-width: 1280px;
@@ -177,14 +180,16 @@
             grid-column: 1;
             grid-row: 1 / 3;
             padding: 0;
-            min-width: 0; /* prevent overflow in grid */
+            min-width: 0;
         }
 
-        /* ── Input row ── */
+        /* ── Input row ──
+             Changed: justify-content flex-start to shift row to the left
+        ── */
         #link-div {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;   /* ← was center */
             gap: 12px;
             flex-wrap: nowrap;
             margin-bottom: 36px;
@@ -235,18 +240,20 @@
             line-height: 1.3;
         }
 
-        /* States driven by JS — mirror the indicator colours */
         #indicator-explainer.state-red    { color: #ff6b6b; }
         #indicator-explainer.state-orange { color: #ffd000; }
         #indicator-explainer.state-yellow { color: #ffe066; }
         #indicator-explainer.state-green  { color: #4ade80; }
 
-        /* ── Guider hint ── */
+        /* ── Guider hint — now sits above the aside (grid row 1, col 2) ── */
         .guider {
+            grid-column: 2;
+            grid-row: 1;
             display: flex;
-            justify-content: flex-end;
-            margin-bottom: 14px;
-            padding-right: 4px;
+            justify-content: flex-start;
+            align-items: flex-end;         /* pin to bottom of this cell */
+            padding-bottom: 10px;
+            padding-left: 2px;
         }
 
         .guider span {
@@ -255,28 +262,25 @@
             color: rgba(255,255,255,0.4);
             font-style: italic;
             letter-spacing: 0.02em;
-            max-width: 240px;
-            text-align: right;
+            text-align: left;
             line-height: 1.5;
             border-left: 2px solid rgba(0,212,255,0.25);
             padding-left: 10px;
         }
 
         /* ── Status Indicator dot ── */
-        /* ── Status Indicator dot ── */
-#indicator {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
-    border-radius: 50%;
-    background: var(--indicator-idle);
-    display: inline-block;
-    box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.2);
-    transition: background 0.3s ease, box-shadow 0.3s ease;
-    flex-shrink: 0;
-}
+        #indicator {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border-radius: 50%;
+            background: var(--indicator-idle);
+            display: inline-block;
+            box-shadow: 0 0 0 4px rgba(107, 114, 128, 0.2);
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+            flex-shrink: 0;
+        }
 
-        /* JS can add these classes to indicate state */
         #indicator.active {
             background: #22c55e;
             box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25), 0 0 10px rgba(34, 197, 94, 0.4);
@@ -297,6 +301,43 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        /* ── Analyse button — inline after indicator, disabled by default ── */
+        .analyse {
+            padding: 10px 22px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: "Red Hat Text", sans-serif;
+            letter-spacing: 0.06em;
+            flex-shrink: 0;
+
+            /* Inactive / locked appearance */
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.25);
+            cursor: not-allowed;
+            pointer-events: none;           /* fully unclickable */
+            opacity: 0.5;
+            user-select: none;
+            transition: background 0.3s, color 0.3s, opacity 0.3s, border-color 0.3s;
+        }
+
+        /* When JS adds .active to the button, it becomes clickable */
+        .analyse.active {
+            background: rgba(0, 212, 255, 0.15);
+            border-color: rgba(0, 212, 255, 0.5);
+            color: #00d4ff;
+            cursor: pointer;
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .analyse.active:hover {
+            background: rgba(0, 212, 255, 0.28);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.2);
         }
 
         /* ── Content section header ── */
@@ -332,7 +373,6 @@
             overflow: hidden;
         }
 
-        /* Subtle shimmer line at top of card */
         #content-box::before {
             content: '';
             position: absolute;
@@ -342,7 +382,6 @@
             border-radius: 1px;
         }
 
-        /* Empty-state placeholder text */
         #content-box.empty {
             display: flex;
             align-items: center;
@@ -353,12 +392,12 @@
             font-size: 0.9rem;
         }
 
-        /* ── Aside — right column ── */
+        /* ── Aside — right column, row 2 ── */
         aside {
             grid-column: 2;
-            grid-row: 1 / 3;
+            grid-row: 2;               /* ← now row 2; row 1 is the guider */
             position: sticky;
-            top: 86px; /* nav height + gap */
+            top: 86px;
             max-height: calc(100vh - 110px);
             display: flex;
             flex-direction: column;
@@ -398,9 +437,7 @@
             scrollbar-color: rgba(255,255,255,0.12) transparent;
         }
 
-        .pullRequestListDiv::-webkit-scrollbar {
-            width: 4px;
-        }
+        .pullRequestListDiv::-webkit-scrollbar { width: 4px; }
         .pullRequestListDiv::-webkit-scrollbar-thumb {
             background: rgba(255,255,255,0.12);
             border-radius: 4px;
@@ -417,6 +454,12 @@
             #page-wrapper {
                 grid-template-columns: 1fr;
                 padding: 24px 16px 40px;
+            }
+            .guider {
+                grid-column: 1;
+                grid-row: auto;
+                justify-content: flex-start;
+                padding-bottom: 8px;
             }
             aside {
                 grid-column: 1;
@@ -490,33 +533,123 @@
 
 <div id="page-wrapper">
 
-<main>
-    
-    <div id="link-div">
-        <span id="indicator-explainer"></span>
-        <input type="text" placeholder="Enter owner/repo/pull-number..." id="PRLink">
-        <span id="indicator"></span>
-    </div>
+    <main>
 
+        <!-- Input row: explainer | input | indicator dot | analyse button -->
+        <div id="link-div">
+            <span id="indicator-explainer"></span>
+            <input type="text" placeholder="Enter owner/repo/pull-number..." id="PRLink">
+            <span id="indicator"></span>
+            <button class="analyse">Analyse</button>
+        </div>
+
+        <div id="content-div">
+            <h4>Analysis Output ↓</h4>
+            <div id="content-box" class="empty">Content will appear here...</div>
+
+            <table border="1" id="prTable">
+        <thead>
+            <tr>
+                <th>LinesChanged</th>
+                <th>FilesChanged</th>
+                <th>LinesPerFile</th>
+                <th>Commits</th>
+                <th>PRDescriptionChars</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <!-- Mustache Template -->
+    <template id="pr-template">
+{{#prs}}
+<tr>
+    <td>{{LinesChanged}}</td>
+    <td>{{FilesChanged}}</td>
+    <td>{{LinesperLine}}</td>
+    <td>{{Commits}}</td>
+    <td>{{PRDescriptionChars}}</td>
+    <td>{{Comments}}</td>
+    <td>
+        <a href="{{url}}" target="_blank">
+            Open
+        </a>
+    </td>
+</tr>
+{{/prs}}
+    </template>
+
+      <table border="1" id="prTable">
+        <thead>
+            <tr>
+                <th>MaxLinesChanged</th>
+                <th>MaxFilesChanged</th>
+                <th>MaxLinesPerFile</th>
+                <th>MaxCommits</th>
+                <th>MaxPRDescriptionChars</th>
+                <th>MaxComments</th>
+            </tr>
+        </thead>
+
+        <tbody id="tableBody">
+            <tr>2000</tr>
+            <tr>25</tr>
+            <tr>500</tr>
+            <tr>40</tr>
+            <tr>2000</tr>
+            <tr>25</tr>
+        </tbody>
+    </table>
+
+        </div>
+
+    </main>
+
+    <!-- Guider hint sits above the aside in the grid (col 2, row 1) -->
     <div class="guider">
         <span>Click a Pull Request to view its changes.</span>
     </div>
 
-    <div id="content-div">
-        <h4>Analysis Output ↓</h4>
-        <div id="content-box" class="empty">Content will appear here...</div>
-    </div>
+    <aside>
+        <div class="pullRequestHeadDiv">
+            <p>List of All Pulls for this Repository</p>
+        </div>
+        <div class="pullRequestListDiv">
+            <p>Select a Repo to load the list of all Pulls</p>
+        <table border="1" id="prTable">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Title</th>
+                <th>State</th>
+                <th>URL</th>
+            </tr>
+        </thead>
 
-</main>
+        <tbody id="tableBody"></tbody>
+    </table>
 
-<aside>
-    <div class="pullRequestHeadDiv">
-        <p>List of All Pulls for this Repository</p>
+    <!-- Mustache Template -->
+    <template id="pr-template">
+{{#prs}}
+<tr>
+    <td>{{number}}</td>
+    <td>{{title}}</td>
+    <td>{{state}}</td>
+    <td>
+        <a href="{{url}}" target="_blank">
+            Open
+        </a>
+    </td>
+</tr>
+{{/prs}}
+    </template>
+   
+    <div id="overview">
+<h2 id="overviewHead">Overview of the Repository </h2>
+<div class="overviewPara">Content will appear here</div>
     </div>
-    <div class="pullRequestListDiv">
-        <p>Select a Repo to load the list of all Pulls</p>
-    </div>
-</aside>
 
 </div><!-- /#page-wrapper -->
 
@@ -533,3 +666,13 @@
 
 </body>
 </html>
+
+
+
+    
+   
+
+            
+        
+
+        

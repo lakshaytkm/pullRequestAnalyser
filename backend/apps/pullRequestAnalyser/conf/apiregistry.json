@@ -1,3 +1,4 @@
 {
-"/apis/pullRequestAnalyser":"/apis/pullRequestAnalyser.js?keys=secreT_Key-1May26&get=false"
+"/apis/pullRequestAnalyser":"/apis/pullRequestAnalyser.js?keys=secreT_Key-1May26&get=false",
+"/apis/fetchPullReq":"/apis/fetchPullReq.js?keys=secreT_Key-1May26&get=false"
 }
