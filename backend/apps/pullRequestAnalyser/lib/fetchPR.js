@@ -1,5 +1,5 @@
 const path = require("path");
-const { APP_CONSTANTS } = require("../lib/constants.js");
+const { APP_CONSTANTS } = require("./constants.js");
 const { LIBDIR, CONFDIR } = APP_CONSTANTS;
 const { Octokit } = require("@octokit/rest");
 const { GITHUB_TOKEN } = require(path.join(CONFDIR, "pullRequestAnalyser.json"));

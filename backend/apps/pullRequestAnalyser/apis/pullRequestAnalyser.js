@@ -39,7 +39,7 @@ else{
 };
 
 /* Function Definitions */
-const validateRequest = (jsonReq) => (jsonReq && jsonReq.owner && jsonReq.repo);
+const validateRequest = (jsonReq) => (jsonReq && jsonReq.owner && jsonReq.repo && jsonReq.prNumber);
 
 
 async function run(jsonReq) {

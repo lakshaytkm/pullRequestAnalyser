@@ -4,7 +4,7 @@ const path = require("path");
 
 const { APP_CONSTANTS } = require("../lib/constants.js");
 const { LIBDIR, CONFDIR, ROOTDIR, MONKSHU_LIBDIR } = APP_CONSTANTS;
-const fetcher = require(path.join(LIBDIR, "fetcher.js"));
+const fetcher = require(path.join(LIBDIR, "fetchPR.js"));
 
 
 exports.doService = async (jsonReq) => {

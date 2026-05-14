@@ -7,30 +7,34 @@
 
     <link href="./img/favicon.svg" rel="icon" type="image/svg+xml">
     <script src="https://unpkg.com/mustache@latest/mustache.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Red+Hat+Text:wght@300;400;500;700&display=swap');
 
         /* ── CSS Variables for theme ── */
-        :root {
-            --bg-grad-a: #020024;
-            --bg-grad-b: #090979;
-            --bg-grad-c: #00d4ff;
-            --text-color: floralwhite;
-            --input-bg: rgba(255, 255, 255, 0.95);
-            --input-color: #111;
-            --box-bg: rgba(174, 236, 236, 0.18);
-            --box-border: rgba(255, 255, 255, 0.25);
-            --box-shadow: rgba(0, 212, 255, 0.18);
-            --aside-bg: rgba(255,255,255,0.04);
-            --aside-border: rgba(255,255,255,0.10);
-            --nav-bg: rgba(2, 0, 36, 0.55);
-            --nav-border: rgba(255,255,255,0.08);
-            --footer-color: rgba(255,255,255,0.55);
-            --indicator-idle: #6b7280;
-            --indicator-glow: #00d4ff;
-            --tag-bg: rgba(0, 212, 255, 0.12);
-            --tag-border: rgba(0, 212, 255, 0.3);
-        }
+       :root {
+    --bg-grad-a: #1c170d;        /* deep dark brown */
+    --bg-grad-b: #2a200f;        /* slightly lighter brown */
+    --bg-grad-c: #775822;        /* warm amber */
+    --text-color: #f4f1ec;       /* warm parchment white */
+    --input-bg: rgba(255,252,245,0.96);
+    --input-color: #1c170d;
+    --box-bg: rgba(216, 191, 151, 0.08);
+    --box-border: rgba(216, 191, 151, 0.22);
+    --box-shadow: rgba(215, 166, 80, 0.15);
+    --aside-bg: rgba(216, 191, 151, 0.05);
+    --aside-border: rgba(216, 191, 151, 0.12);
+    --nav-bg: rgba(28, 23, 13, 0.80);
+    --nav-border: rgba(216, 191, 151, 0.10);
+    --footer-color: rgba(244, 241, 236, 0.45);
+    --indicator-idle: #6b5e45;
+    --indicator-glow: #d7a650;
+    --tag-bg: rgba(215, 166, 80, 0.10);
+    --tag-border: rgba(215, 166, 80, 0.30);
+    --table-border: rgba(216, 191, 151, 0.14);
+    --table-head-bg: rgba(216, 191, 151, 0.08);
+    --table-row-hover: rgba(215, 166, 80, 0.07);
+}
 
         [data-theme="light"] {
             --bg-grad-a: #e0f7ff;
@@ -51,6 +55,9 @@
             --indicator-glow: #0277bd;
             --tag-bg: rgba(2, 119, 189, 0.1);
             --tag-border: rgba(2, 119, 189, 0.3);
+            --table-border: rgba(2, 119, 189, 0.18);
+            --table-head-bg: rgba(2, 119, 189, 0.08);
+            --table-row-hover: rgba(2, 119, 189, 0.05);
         }
 
         /* ── Reset & Base ── */
@@ -92,7 +99,6 @@
         }
 
         nav ul li { display: flex; align-items: center; }
-
         nav ul li img { height: 36px; display: block; }
 
         nav h2 {
@@ -163,9 +169,7 @@
         /* ── Page grid wrapper ── */
         #page-wrapper {
             display: grid;
-            /* 1: main content | 2: aside */
             grid-template-columns: 7fr 3fr;
-            /* row 1: guider hint above aside | row 2: main + aside body */
             grid-template-rows: auto 1fr;
             gap: 0 20px;
             max-width: 1280px;
@@ -183,13 +187,11 @@
             min-width: 0;
         }
 
-        /* ── Input row ──
-             Changed: justify-content flex-start to shift row to the left
-        ── */
+        /* ── Input row ── */
         #link-div {
             display: flex;
             align-items: center;
-            justify-content: flex-start;   /* ← was center */
+            justify-content: flex-start;
             gap: 12px;
             flex-wrap: nowrap;
             margin-bottom: 36px;
@@ -245,13 +247,13 @@
         #indicator-explainer.state-yellow { color: #ffe066; }
         #indicator-explainer.state-green  { color: #4ade80; }
 
-        /* ── Guider hint — now sits above the aside (grid row 1, col 2) ── */
+        /* ── Guider hint ── */
         .guider {
             grid-column: 2;
             grid-row: 1;
             display: flex;
             justify-content: flex-start;
-            align-items: flex-end;         /* pin to bottom of this cell */
+            align-items: flex-end;
             padding-bottom: 10px;
             padding-left: 2px;
         }
@@ -303,7 +305,7 @@
             50% { opacity: 0.5; }
         }
 
-        /* ── Analyse button — inline after indicator, disabled by default ── */
+        /* ── Analyse button ── */
         .analyse {
             padding: 10px 22px;
             border-radius: 12px;
@@ -312,19 +314,16 @@
             font-family: "Red Hat Text", sans-serif;
             letter-spacing: 0.06em;
             flex-shrink: 0;
-
-            /* Inactive / locked appearance */
             background: rgba(255, 255, 255, 0.06);
             border: 1.5px solid rgba(255, 255, 255, 0.12);
             color: rgba(255, 255, 255, 0.25);
             cursor: not-allowed;
-            pointer-events: none;           /* fully unclickable */
+            pointer-events: none;
             opacity: 0.5;
             user-select: none;
             transition: background 0.3s, color 0.3s, opacity 0.3s, border-color 0.3s;
         }
 
-        /* When JS adds .active to the button, it becomes clickable */
         .analyse.active {
             background: rgba(0, 212, 255, 0.15);
             border-color: rgba(0, 212, 255, 0.5);
@@ -354,7 +353,7 @@
         #content-box {
             width: 100%;
             min-height: 220px;
-            margin: 0 auto;
+            margin: 0 auto 28px;
             padding: 28px 32px;
             border-radius: 20px;
             border: 1px solid var(--box-border);
@@ -392,10 +391,108 @@
             font-size: 0.9rem;
         }
 
+        /* ── Shared table box wrapper ── */
+        .table-box {
+            width: 100%;
+            margin-bottom: 24px;
+            border-radius: 16px;
+            border: 1px solid var(--box-border);
+            background: var(--box-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            overflow: hidden;
+            box-shadow: 0 8px 28px var(--box-shadow);
+            position: relative;
+        }
+
+        .table-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 10%; right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.4), transparent);
+        }
+
+        .table-box-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(0, 212, 255, 0.7);
+            padding: 14px 20px 0;
+            text-align: left;
+        }
+
+        /* ── Tables ── */
+        .pr-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        .pr-table thead tr {
+            background: var(--table-head-bg);
+        }
+
+        .pr-table th {
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 0.70rem;
+            font-weight: 700;
+            letter-spacing: 0.10em;
+            text-transform: uppercase;
+            color: rgba(0, 212, 255, 0.75);
+            border-bottom: 1px solid var(--table-border);
+            white-space: nowrap;
+        }
+
+        .pr-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--table-border);
+            color: var(--text-color);
+            vertical-align: middle;
+            font-size: 0.83rem;
+        }
+
+        .pr-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pr-table tbody tr:hover {
+            background: var(--table-row-hover);
+            cursor: pointer;
+        }
+
+        .pr-table td a {
+            color: #00d4ff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.78rem;
+            padding: 3px 10px;
+            border: 1px solid rgba(0,212,255,0.3);
+            border-radius: 8px;
+            background: rgba(0,212,255,0.08);
+            transition: background 0.2s, transform 0.15s;
+            display: inline-block;
+        }
+
+        .pr-table td a:hover {
+            background: rgba(0,212,255,0.2);
+            transform: translateY(-1px);
+        }
+
+        .pr-table-empty {
+            padding: 24px;
+            font-size: 0.83rem;
+            color: rgba(255,255,255,0.3);
+            font-style: italic;
+            text-align: center;
+        }
+
         /* ── Aside — right column, row 2 ── */
         aside {
             grid-column: 2;
-            grid-row: 2;               /* ← now row 2; row 1 is the guider */
+            grid-row: 2;
             position: sticky;
             top: 86px;
             max-height: calc(100vh - 110px);
@@ -426,6 +523,7 @@
             color: rgba(0, 212, 255, 0.75);
         }
 
+        /* PR list scrollable area */
         .pullRequestListDiv {
             flex: 1;
             overflow-y: auto;
@@ -435,6 +533,7 @@
             font-style: italic;
             scrollbar-width: thin;
             scrollbar-color: rgba(255,255,255,0.12) transparent;
+            min-height: 0; /* allow flex shrink */
         }
 
         .pullRequestListDiv::-webkit-scrollbar { width: 4px; }
@@ -447,6 +546,31 @@
             margin: 0;
             text-align: center;
             padding-top: 20px;
+        }
+
+        /* ── Repo Overview box (inside aside, below PR list) ── */
+        .repo-overview {
+            flex-shrink: 0;
+            border-top: 1px solid var(--aside-border);
+            padding: 16px 18px 18px;
+            background: rgba(0, 212, 255, 0.04);
+        }
+
+        .repo-overview-heading {
+            margin: 0 0 8px;
+            font-size: 0.70rem;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: rgba(0, 212, 255, 0.75);
+        }
+
+        .repo-overview-body {
+            font-size: 0.80rem;
+            color: rgba(255,255,255,0.30);
+            font-style: italic;
+            line-height: 1.55;
+            text-align: left;
         }
 
         /* Responsive — stack on small screens */
@@ -465,7 +589,7 @@
                 grid-column: 1;
                 grid-row: auto;
                 position: static;
-                max-height: 280px;
+                max-height: 380px;
                 margin-top: 20px;
             }
         }
@@ -505,6 +629,38 @@
             background: rgba(0,212,255,0.2);
             transform: translateY(-1px);
         }
+        /* Markdown rendered output */
+#content-box h1, #content-box h2, #content-box h3 {
+    color: #00d4ff;
+    margin: 16px 0 8px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+#content-box p { margin: 0 0 10px; line-height: 1.7; }
+#content-box ul, #content-box ol { padding-left: 20px; margin: 0 0 10px; }
+#content-box li { margin-bottom: 4px; line-height: 1.6; }
+#content-box code {
+    background: rgba(0,212,255,0.10);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.85em;
+    font-family: monospace;
+}
+#content-box pre {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 16px;
+    overflow-x: auto;
+}
+#content-box pre code { background: none; border: none; padding: 0; }
+#content-box strong { color: #fff; font-weight: 700; }
+#content-box hr {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 16px 0;
+}
     </style>
 </head>
 
@@ -543,113 +699,130 @@
             <button class="analyse">Analyse</button>
         </div>
 
+        <!-- ─────────────────────────────────────────────
+             CONTENT DIV — analysis output + both tables
+        ───────────────────────────────────────────── -->
         <div id="content-div">
             <h4>Analysis Output ↓</h4>
+
+            <!-- AI / text analysis result box -->
             <div id="content-box" class="empty">Content will appear here...</div>
 
-            <table border="1" id="prTable">
-        <thead>
-            <tr>
-                <th>LinesChanged</th>
-                <th>FilesChanged</th>
-                <th>LinesPerFile</th>
-                <th>Commits</th>
-                <th>PRDescriptionChars</th>
-                <th>Comments</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
-    </table>
+            <!-- Table 1 — PR Metrics -->
+            <div class="table-box">
+                <div class="table-box-label">PR Metrics</div>
+                <table class="pr-table" id="prMetricsTable">
+                    <thead>
+                        <tr>
+                            <th>Lines Changed</th>
+                            <th>Files Changed</th>
+                            <th>Commits</th>
+                            <th>Desc. Length</th>
+                            <th>Comments</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prMetricsBody">
+                        <tr>
+                            <td colspan="7" class="pr-table-empty">Select a Pull Request to populate metrics.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-    <!-- Mustache Template -->
-    <template id="pr-template">
+            <!-- Mustache template for Table 1 -->
+            
+<template id="pr-metrics-template">
 {{#prs}}
 <tr>
     <td>{{LinesChanged}}</td>
     <td>{{FilesChanged}}</td>
-    <td>{{LinesperLine}}</td>
     <td>{{Commits}}</td>
     <td>{{PRDescriptionChars}}</td>
     <td>{{Comments}}</td>
-    <td>
-        <a href="{{url}}" target="_blank">
-            Open
-        </a>
-    </td>
+    <td><a href="{{url}}" target="_blank">Open</a></td>
 </tr>
 {{/prs}}
-    </template>
+</template>
 
-      <table border="1" id="prTable">
-        <thead>
-            <tr>
-                <th>MaxLinesChanged</th>
-                <th>MaxFilesChanged</th>
-                <th>MaxLinesPerFile</th>
-                <th>MaxCommits</th>
-                <th>MaxPRDescriptionChars</th>
-                <th>MaxComments</th>
-            </tr>
-        </thead>
+            <!-- Table 2 — Max Thresholds -->
+            <div class="table-box">
+                <div class="table-box-label">Max Thresholds</div>
+                <table class="pr-table" id="prThresholdsTable">
+                    <thead>
+                        <tr>
+                            <th>Max Lines Changed</th>
+                            <th>Max Files Changed</th>
+                            <th>Max Commits</th>
+                            <th>Max Desc. Length</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prThresholdsBody">
+                        <tr>
+                            <td>2000</td>
+                            <td>25</td>
+                            <td>10</td>
+                            <td>1000</td>
+                            
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <tbody id="tableBody">
-            <tr>2000</tr>
-            <tr>25</tr>
-            <tr>500</tr>
-            <tr>40</tr>
-            <tr>2000</tr>
-            <tr>25</tr>
-        </tbody>
-    </table>
-
-        </div>
+        </div><!-- /#content-div -->
 
     </main>
 
-    <!-- Guider hint sits above the aside in the grid (col 2, row 1) -->
+    <!-- Guider hint sits above the aside (col 2, row 1) -->
     <div class="guider">
         <span>Click a Pull Request to view its changes.</span>
     </div>
 
+    <!-- ─────────────────────────────────────────────
+         ASIDE — PR list + Repo Overview
+    ───────────────────────────────────────────── -->
     <aside>
         <div class="pullRequestHeadDiv">
             <p>List of All Pulls for this Repository</p>
         </div>
+
+        <!-- Scrollable PR list -->
         <div class="pullRequestListDiv">
             <p>Select a Repo to load the list of all Pulls</p>
-        <table border="1" id="prTable">
-        <thead>
-            <tr>
-                <th>No.</th>
-                <th>Title</th>
-                <th>State</th>
-                <th>URL</th>
-            </tr>
-        </thead>
 
-        <tbody id="tableBody"></tbody>
-    </table>
+            <table class="pr-table" id="prListTable">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Title</th>
+                        <th>State</th>
+                        <th>URL</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
 
-    <!-- Mustache Template -->
-    <template id="pr-template">
+            <!-- Mustache template for PR list -->
+            <template id="pr-template">
 {{#prs}}
 <tr>
     <td>{{number}}</td>
     <td>{{title}}</td>
     <td>{{state}}</td>
-    <td>
-        <a href="{{url}}" target="_blank">
-            Open
-        </a>
-    </td>
+    <td><a href="{{url}}" target="_blank">Open</a></td>
 </tr>
 {{/prs}}
-    </template>
-   
-    <div id="overview">
-<h2 id="overviewHead">Overview of the Repository </h2>
-<div class="overviewPara">Content will appear here</div>
-    </div>
+            </template>
+        </div>
+        
+        <!-- Repo Overview — pinned below the list -->
+        <div class="repo-overview">
+            <p class="repo-overview-heading">Overview of the Repository</p>
+        </div>
+        <div class="repo-overview-body" id="overviewPara">
+                Select a repository to see its overview here.
+        </div>
+        
+    </aside>
 
 </div><!-- /#page-wrapper -->
 
@@ -666,13 +839,3 @@
 
 </body>
 </html>
-
-
-
-    
-   
-
-            
-        
-
-        
